@@ -33,6 +33,7 @@ import os
 import sys
 import time
 import numpy as np
+import pickle
 
 from caffe2.python import workspace
 
@@ -45,6 +46,7 @@ import datasets.dummy_datasets as dummy_datasets
 import utils.c2 as c2_utils
 import utils.logging
 import utils.vis as vis_utils
+import utils_ade20k.misc as ade20k_utils
 
 c2_utils.import_detectron_ops()
 # OpenCL may be enabled by default in OpenCV3; disable it because it's not
@@ -57,14 +59,14 @@ def parse_args():
         '--cfg',
         dest='cfg',
         help='cfg model file (/path/to/model_config.yaml)',
-        default=None,
+        default="configs/12_2017_baselines/e2e_mask_rcnn_R-101-FPN_2x.yaml",
         type=str
     )
     parser.add_argument(
         '--wts',
         dest='weights',
         help='weights model file (/path/to/model_weights.pkl)',
-        default=None,
+        default="https://s3-us-west-2.amazonaws.com/detectron/35861858/12_2017_baselines/e2e_mask_rcnn_R-101-FPN_2x.yaml.02_32_51.SgT4y1cO/output/train/coco_2014_train:coco_2014_valminusminival/generalized_rcnn/model_final.pkl",
         type=str
     )
     parser.add_argument('-p',
@@ -78,16 +80,6 @@ def parse_args():
         sys.exit(1)
     return parser.parse_args()
 
-def get_config(project):
-    import json
-    PATH = os.path.dirname(__file__)
-    with open(os.path.join(PATH,"paths.json"), 'r') as f:
-        data_config = json.load(f)
-        if project in data_config:
-            return data_config[project]
-        else:
-            raise Exception("Project not found: " + project)
-
 def main(args):
     logger = logging.getLogger(__name__)
     merge_cfg_from_file(args.cfg)
@@ -97,17 +89,26 @@ def main(args):
     model = infer_engine.initialize_model_from_cfg()
     dummy_coco_dataset = dummy_datasets.get_coco_dataset()
 
-    config = get_config(args.project)
+    config = ade20k_utils.get_config(args.project)
     img_dir = config["images"]
     out_dir = os.path.join(config["predictions"], "maskrcnn")
-
+    pkl_dir = os.path.join(out_dir, "pkl")
+    vis_dir = os.path.join(out_dir, "vis")
+    
     im_list = [line.rstrip() for line in open(config["im_list"], 'r')]
+    im_list = im_list[args.start:args.end]
 
     for i, im_name in enumerate(im_list):
         img_path = os.path.join(img_dir, im_name)
-        out_name = os.path.join(out_dir, '{}'.format(os.path.basename(im_name) + '.pdf'))
+        img_basename = os.path.splitext(im_name)[0]
+        pkl_path = os.path.join(pkl_dir, img_basename + '.pkl')
+        vis_path = os.path.join(vis_dir, img_basename + '.png') 
+        logger.info('Processing {} -> {}'.format(im_name, vis_path))
+        
+        if os.path.exists(vis_path):
+            print("Already done")
+            continue
 
-        logger.info('Processing {} -> {}'.format(im_name, out_name))
         im = cv2.imread(img_path)
         timers = defaultdict(Timer)
         t = time.time()
@@ -124,10 +125,21 @@ def main(args):
                 'rest (caches and auto-tuning need to warm up)'
             )
 
+        pkl_obj = (cls_boxes, cls_segms, cls_keyps)
+        if not os.path.isdir(os.path.dirname(pkl_path)):
+            os.makedirs(os.path.dirname(pkl_path))
+        pickle.dump(pkl_obj, open(pkl_path, "wb"))
+        
+        d, vis_name = os.path.split(vis_path)
+        split = os.path.splitext(vis_name)
+        vis_name = split[0]
+        if not os.path.isdir(d):
+            os.makedirs(d)
+
         vis_utils.vis_one_image(
             im[:, :, ::-1],  # BGR -> RGB for visualization
-            im_name,
-            out_dir,
+            vis_name,
+            d,
             cls_boxes,
             cls_segms,
             cls_keyps,
@@ -135,7 +147,8 @@ def main(args):
             box_alpha=0.3,
             show_class=True,
             thresh=0.7,
-            kp_thresh=2
+            kp_thresh=2,
+            ext='png'
         )
 
 

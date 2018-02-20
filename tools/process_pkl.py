@@ -48,20 +48,31 @@ def create_panoptic_segmentation(cls_boxes, cls_segms, cls_keyps):
     return out
 
 
-def process(im_name, im, pkl_path):
+def process(pkl_path, out_path):
     cls_boxes, cls_segms, cls_keyps = pickle.load(open(pkl_path, 'rb'))
     out = create_panoptic_segmentation(cls_boxes, cls_segms, cls_keyps)
 
-
-
-
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--project', type=str, required=True, help="Project name")
     args = parser.parse_args()
 
-    config = utils_ade20k.get_config(args.project)
+    config = ade20k_utils.get_config(args.project)
+    out_dir = os.path.join(config["predictions"], "maskrcnn")
+    pkl_dir = os.path.join(out_dir, "pkl")
+    panseg_dir = os.path.join(out_dir, "panseg")
 
-    im_name = "hi"
-    im = misc.imread(im_path, mode='RGB')
-    process(im_name, im, pkl_path)
+    im_list = [line.rstrip() for line in open(config["im_list"], 'r')]
+
+    for i, im_name in enumerate(im_list):
+        img_basename = os.path.splitext(im_name)[0]
+        pkl_path = os.path.join(pkl_dir, img_basename + '.pkl')
+        panseg_path = os.path.join(panseg_dir, img_basename + '.png')
+
+
+        print('Processing {}, {} -> {}'.format(i, pkl_path, panseg_path))
+        process(pkl_path, panseg_path)
+
+
+if __name__ == '__main__':
+    main()
