@@ -27,11 +27,14 @@ import os
 import re
 import sys
 import urllib2
+import ssl
 
 logger = logging.getLogger(__name__)
 
 _DETECTRON_S3_BASE_URL = 'https://s3-us-west-2.amazonaws.com/detectron'
 
+# Patch
+ssl._create_default_https_context = ssl._create_unverified_context
 
 def save_object(obj, file_name):
     """Save a Python object by pickling it."""

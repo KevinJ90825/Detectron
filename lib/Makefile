@@ -10,7 +10,7 @@ install:
 
 .PHONY: ops
 ops:
-	mkdir -p build && cd build && cmake .. && make -j$(shell nproc)
+	mkdir -p build && cd build && cmake -DCMAKE_PREFIX_PATH=/data/vision/oliva/scenedataset/scaleplaces/caffe2_env -DCMAKE_INSTALL_PREFIX=/data/vision/oliva/scenedataset/scaleplaces/caffe2_env .. && make -j$(shell nproc)
 
 .PHONY: dev
 dev:

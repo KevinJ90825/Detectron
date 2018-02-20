@@ -94,7 +94,7 @@ def get_class_string(class_index, score, dataset):
     return class_text + ' {:0.2f}'.format(score).lstrip('0')
 
 
-def vis_mask(img, mask, col, alpha=0.4, show_border=True, border_thick=1):
+def vis_mask(img, mask, col, alpha=0.4, show_border=False, border_thick=1):
     """Visualizes a single binary mask."""
 
     img = img.astype(np.float32)
