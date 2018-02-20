@@ -16,8 +16,9 @@ def open_category_info():
             idx = split[0]
             if idx.isdigit():
                 idx = int(idx)
-                categories = split[4:]
-                categories = [c.replace(',','') for c in categories]
+                categories = " ".join(split[4:])
+                categories = categories.split(",")
+                categories = [c.strip() for c in categories]
                 idx_to_c[idx] = categories
                 for c in categories:
                     c_to_idx[c] = idx
