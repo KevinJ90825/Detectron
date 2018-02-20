@@ -20,7 +20,7 @@ def vis(im_name, im, cls_boxes, cls_segms, cls_keyps):
         show_box=False, dataset=None, show_class=False)
     misc.imsave("loaded.png", loaded)
 
-def create_panoptic_segmentation(cls_boxes, cls_segms, cls_keyps):
+def create_panoptic_segmentation(img, cls_boxes, cls_segms, cls_keyps):
     boxes, segms, keypoints, classes = vis_utils.convert_from_cls_format(cls_boxes, cls_segms, cls_keyps)
     dataset = dummy_datasets.get_coco_dataset()
 
@@ -28,8 +28,8 @@ def create_panoptic_segmentation(cls_boxes, cls_segms, cls_keyps):
     areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
     sorted_inds = np.argsort(-areas)
 
-    segm_out = np.zeros(im.shape[:2], dtype="uint8")
-    inst_out = np.zeros(im.shape[:2], dtype="uint8")
+    segm_out = np.zeros(img.shape[:2], dtype="uint8")
+    inst_out = np.zeros(img.shape[:2], dtype="uint8")
 
     masks = mask_util.decode(segms)
     cnt = 1
@@ -42,15 +42,17 @@ def create_panoptic_segmentation(cls_boxes, cls_segms, cls_keyps):
         segm_out[mask] = idx
         inst_out[mask] = cnt
         cnt += 1
-
-    misc.imsave("test.png", segm_out)
     out = np.stack([segm_out, inst_out], axis=-1)
     return out
 
-
-def process(pkl_path, out_path):
+def process(img_path, pkl_path, out_path):
+    img = misc.imread(img_path)
     cls_boxes, cls_segms, cls_keyps = pickle.load(open(pkl_path, 'rb'))
-    out = create_panoptic_segmentation(cls_boxes, cls_segms, cls_keyps)
+    out = create_panoptic_segmentation(img, cls_boxes, cls_segms, cls_keyps)
+
+    if not os.path.isdir(os.path.dirname(out_path)):
+        os.makedirs(os.path.dirname(out_path))
+    misc.imsave(out_path, out)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -65,13 +67,18 @@ def main():
     im_list = [line.rstrip() for line in open(config["im_list"], 'r')]
 
     for i, im_name in enumerate(im_list):
+        img_path = os.path.join(img_dir, im_name)
+
         img_basename = os.path.splitext(im_name)[0]
         pkl_path = os.path.join(pkl_dir, img_basename + '.pkl')
         panseg_path = os.path.join(panseg_dir, img_basename + '.png')
 
+        if os.path.exists(panseg_path):
+            print("Already done")
+            continue
 
         print('Processing {}, {} -> {}'.format(i, pkl_path, panseg_path))
-        process(pkl_path, panseg_path)
+        process(img_path, pkl_path, panseg_path)
 
 
 if __name__ == '__main__':
