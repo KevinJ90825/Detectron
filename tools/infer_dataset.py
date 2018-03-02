@@ -96,7 +96,6 @@ def main(args):
     vis_dir = os.path.join(out_dir, "vis")
     
     im_list = [line.rstrip() for line in open(config["im_list"], 'r')]
-    im_list = im_list[args.start:args.end]
 
     for i, im_name in enumerate(im_list):
         img_path = os.path.join(img_dir, im_name)
