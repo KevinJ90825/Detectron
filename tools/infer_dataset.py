@@ -96,7 +96,6 @@ def main(args):
     vis_dir = os.path.join(out_dir, "vis")
     
     im_list = [line.rstrip() for line in open(config["im_list"], 'r')]
-    im_list = im_list[args.start:args.end]
 
     for i, im_name in enumerate(im_list):
         img_path = os.path.join(img_dir, im_name)
@@ -130,26 +129,16 @@ def main(args):
             os.makedirs(os.path.dirname(pkl_path))
         pickle.dump(pkl_obj, open(pkl_path, "wb"))
         
-        d, vis_name = os.path.split(vis_path)
-        split = os.path.splitext(vis_name)
-        vis_name = split[0]
-        if not os.path.isdir(d):
-            os.makedirs(d)
 
-        vis_utils.vis_one_image(
-            im[:, :, ::-1],  # BGR -> RGB for visualization
-            vis_name,
-            d,
-            cls_boxes,
-            cls_segms,
-            cls_keyps,
-            dataset=dummy_coco_dataset,
-            box_alpha=0.3,
-            show_class=True,
-            thresh=0.7,
+        if not os.path.isdir(os.path.dirname(vis_path)):
+            os.makedirs(os.path.dirname(vis_path))
+
+        vis_image = vis_utils.vis_one_image_opencv(im[:, :, ::-1], cls_boxes, cls_segms, cls_keyps,
+            thresh=0,
             kp_thresh=2,
-            ext='png'
-        )
+            dataset=dummy_coco_dataset,
+            show_class=True)
+        cv2.imwrite(vis_path, vis_image)
 
 
 if __name__ == '__main__':
