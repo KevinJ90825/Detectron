@@ -103,7 +103,8 @@ def main(args):
         pkl_path = os.path.join(pkl_dir, img_basename + '.pkl')
         vis_path = os.path.join(vis_dir, img_basename + '.png') 
         logger.info('Processing {} -> {}'.format(im_name, vis_path))
-        
+        logger.info('{}/{}'.format(i, len(im_list)))
+
         if os.path.exists(vis_path):
             print("Already done")
             continue
@@ -137,6 +138,7 @@ def main(args):
             thresh=0,
             kp_thresh=2,
             dataset=dummy_coco_dataset,
+            show_box=True,
             show_class=True)
         cv2.imwrite(vis_path, vis_image)
 

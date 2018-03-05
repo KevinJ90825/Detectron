@@ -134,6 +134,7 @@ def vis_bbox(img, bbox, thick=1):
     (x0, y0, w, h) = bbox
     x1, y1 = int(x0 + w), int(y0 + h)
     x0, y0 = int(x0), int(y0)
+    img = img.copy()
     cv2.rectangle(img, (x0, y0), (x1, y1), _GREEN, thickness=thick)
     return img
 

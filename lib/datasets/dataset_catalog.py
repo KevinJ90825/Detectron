@@ -185,5 +185,29 @@ DATASETS = {
             _DATA_DIR + '/VOC2012/annotations/voc_2012_trainval.json',
         DEVKIT_DIR:
             _DATA_DIR + '/VOC2012/VOCdevkit2012'
+    },
+    'coco_2017_train': {
+        IM_DIR:
+            _DATA_DIR + '/coco/train2017',
+        ANN_FN:
+            _DATA_DIR + '/coco/annotations/instances_train2017.json'
+    },
+    'coco_2017_val': {
+        IM_DIR:
+            _DATA_DIR + '/coco/val2017',
+        ANN_FN:
+            _DATA_DIR + '/coco/annotations/instances_val2017.json'
+    },
+    'ade20k_train': {
+        IM_DIR:
+            _DATA_DIR + '/ade20k/images/training',
+        ANN_FN:
+            _DATA_DIR + '/ade20k/annotations/instance_training_gts.json'
+    },
+    'ade20k_val': {
+        IM_DIR:
+            _DATA_DIR + '/ade20k/images/validation',
+        ANN_FN:
+            _DATA_DIR + '/ade20k/annotations/instance_validation_gts.json'
     }
 }
