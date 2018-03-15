@@ -91,7 +91,7 @@ def main(args):
 
     config = ade20k_utils.get_config(args.project)
     img_dir = config["images"]
-    out_dir = os.path.join(config["predictions"], "maskrcnn")
+    out_dir = os.path.join(config["predictions"], "maskrcnn_ade")
     pkl_dir = os.path.join(out_dir, "pkl")
     vis_dir = os.path.join(out_dir, "vis")
     
