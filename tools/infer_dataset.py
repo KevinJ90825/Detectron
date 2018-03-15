@@ -87,7 +87,8 @@ def main(args):
     cfg.NUM_GPUS = 1
     assert_and_infer_cfg()
     model = infer_engine.initialize_model_from_cfg()
-    dummy_coco_dataset = dummy_datasets.get_coco_dataset()
+    # dummy_dataset = dummy_datasets.get_coco_dataset()
+    dummy_dataset = dummy_datasets.get_ade_dataset()
 
     config = ade20k_utils.get_config(args.project)
     img_dir = config["images"]
@@ -136,7 +137,7 @@ def main(args):
         vis_image = vis_utils.vis_one_image_opencv(im[:, :, ::-1], cls_boxes, cls_segms, cls_keyps,
             thresh=0,
             kp_thresh=2,
-            dataset=dummy_coco_dataset,
+            dataset=dummy_dataset,
             show_class=True)
         cv2.imwrite(vis_path, vis_image)
 

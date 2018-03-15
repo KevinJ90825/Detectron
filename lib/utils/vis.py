@@ -224,7 +224,7 @@ def vis_one_image_opencv(
         score = boxes[i, -1]
         if score < thresh:
             continue
-
+            
         # show box (off by default)
         if show_box:
             im = vis_bbox(

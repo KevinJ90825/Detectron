@@ -22,6 +22,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import os
 from utils.collections import AttrDict
 
 
@@ -45,3 +46,27 @@ def get_coco_dataset():
     ]
     ds.classes = {i: name for i, name in enumerate(classes)}
     return ds
+
+def get_ade_dataset():
+    """A dummy COCO dataset that includes only the 'classes' field."""
+    ds = AttrDict()
+    PATH = os.path.dirname(__file__)
+    classes = get_classes(os.path.join(PATH, "instanceInfo100_train.txt"))
+
+    ds.classes = {i: name for i, name in enumerate(classes)}
+    return ds
+
+def get_classes(fname):
+    classes = ['__background__']
+    with open(fname, 'r') as f:
+        for line in f.readlines():
+            split = line.split()
+            idx = split[0]
+            if idx.isdigit():
+                category = split[1:-2]
+                category = " ".join(category)
+                classes.append(category)
+    return classes
+
+print(get_ade_dataset())
+
