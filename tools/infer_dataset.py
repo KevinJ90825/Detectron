@@ -92,7 +92,7 @@ def main(args):
 
     config = ade20k_utils.get_config(args.project)
     img_dir = config["images"]
-    out_dir = os.path.join(config["predictions"], "maskrcnn")
+    out_dir = os.path.join(config["predictions"], "maskrcnn_ade")
     pkl_dir = os.path.join(out_dir, "pkl")
     vis_dir = os.path.join(out_dir, "vis")
     
@@ -104,7 +104,8 @@ def main(args):
         pkl_path = os.path.join(pkl_dir, img_basename + '.pkl')
         vis_path = os.path.join(vis_dir, img_basename + '.png') 
         logger.info('Processing {} -> {}'.format(im_name, vis_path))
-        
+        logger.info('{}/{}'.format(i, len(im_list)))
+
         if os.path.exists(vis_path):
             print("Already done")
             continue
@@ -138,6 +139,7 @@ def main(args):
             thresh=0,
             kp_thresh=2,
             dataset=dummy_dataset,
+            show_box=True,
             show_class=True)
         cv2.imwrite(vis_path, vis_image)
 

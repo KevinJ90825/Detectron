@@ -121,6 +121,7 @@ def vis_class(img, pos, class_str, font_scale=0.35):
     # Place text background.
     back_tl = x0, y0 - int(1.3 * txt_h)
     back_br = x0 + txt_w, y0
+    img = img.copy()
     cv2.rectangle(img, back_tl, back_br, _GREEN, -1)
     # Show text.
     txt_tl = x0, y0 - int(0.3 * txt_h)
@@ -133,6 +134,7 @@ def vis_bbox(img, bbox, thick=1):
     (x0, y0, w, h) = bbox
     x1, y1 = int(x0 + w), int(y0 + h)
     x0, y0 = int(x0), int(y0)
+    img = img.copy()
     cv2.rectangle(img, (x0, y0), (x1, y1), _GREEN, thickness=thick)
     return img
 
