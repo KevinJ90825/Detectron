@@ -68,5 +68,3 @@ def get_classes(fname):
                 classes.append(category)
     return classes
 
-print(get_ade_dataset())
-
