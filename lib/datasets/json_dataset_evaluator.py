@@ -93,6 +93,9 @@ def _coco_segms_results_one_category(json_dataset, boxes, segms, cat_id):
     # assert len(segms) == len(image_ids)
 
     for i, image_id in enumerate(image_ids):
+        if i >= len(boxes): # CHANGED
+            continue
+
         dets = boxes[i]
         rles = segms[i]
 
