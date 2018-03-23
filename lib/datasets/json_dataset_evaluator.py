@@ -371,7 +371,7 @@ def _coco_kp_results_one_category(json_dataset, boxes, kps, cat_id):
     image_ids = json_dataset.COCO.getImgIds()
     image_ids.sort()
     assert len(kps) == len(image_ids)
-    assert len(boxes) == len(image_ids)
+    # assert len(boxes) == len(image_ids) # CHANGED: Want this to work when inference was not done on whole dataset
     use_box_score = False
     if cfg.KRCNN.KEYPOINT_CONFIDENCE == 'logit':
         # This is ugly; see utils.keypoints.heatmap_to_keypoints for the magic
@@ -385,7 +385,7 @@ def _coco_kp_results_one_category(json_dataset, boxes, kps, cat_id):
         raise ValueError(
             'KRCNN.KEYPOINT_CONFIDENCE must be "logit", "prob", or "bbox"')
     for i, image_id in enumerate(image_ids):
-        if len(boxes[i]) == 0:
+        if i >= len(boxes) or len(boxes[i]) == 0: # CHANGED
             continue
         kps_dets = kps[i]
         scores = boxes[i][:, -1].astype(np.float)
