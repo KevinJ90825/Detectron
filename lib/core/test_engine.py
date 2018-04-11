@@ -173,6 +173,8 @@ def multi_gpu_test_net_on_dataset(
     binary_dir = envu.get_runtime_dir()
     binary_ext = envu.get_py_bin_ext()
     binary = os.path.join(binary_dir, 'test_net' + binary_ext)
+    if not os.path.exists(binary):
+        binary = os.path.join(binary_dir, 'tools/test_net' + binary_ext)
     assert os.path.exists(binary), 'Binary \'{}\' not found'.format(binary)
 
     # Pass the target dataset and proposal file (if any) via the command line
