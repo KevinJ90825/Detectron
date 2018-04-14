@@ -22,6 +22,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import sys
+import json
+import logging
 import datetime
 import numpy as np
 
@@ -32,6 +35,8 @@ from utils.logging import SmoothedValue
 from utils.timer import Timer
 import utils.net as nu
 
+
+logger = logging.getLogger(__name__)
 
 class TrainingStats(object):
     """Track vital training statistics."""
@@ -86,7 +91,9 @@ class TrainingStats(object):
         if (cur_iter % self.LOG_PERIOD == 0 or
                 cur_iter == cfg.SOLVER.MAX_ITER - 1):
             stats = self.GetStats(cur_iter, lr)
-            log_json_stats(stats)
+            json_stats = 'json_stats: {:s}'.format(json.dumps(stats, sort_keys=True))
+            logger.info(json_stats)
+            training_progress_bar(stats)
 
     def GetStats(self, cur_iter, lr):
         eta_seconds = self.iter_timer.average_time * (
@@ -109,3 +116,27 @@ class TrainingStats(object):
         for k, v in self.smoothed_losses_and_metrics.items():
             stats[k] = v.GetMedianValue()
         return stats
+
+def training_progress_bar(stats):
+    """Report training progress.
+    Credit:
+    https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console/27871113
+    """
+    count = stats['iter']
+    total = cfg.SOLVER.MAX_ITER
+    eta = stats['eta']
+    
+    bar_len = 60
+    filled_len = int(round(bar_len * count / float(total)))
+
+    percents = round(100.0 * count / float(total), 1)
+    bar = '=' * filled_len + '-' * (bar_len - filled_len)
+
+    sys.stdout.write(
+        '  [{}] {}% eta: {}  \r'.
+        format(bar, percents, eta)
+    )
+    sys.stdout.flush()
+    if count >= total:
+        sys.stdout.write('\n')
+
