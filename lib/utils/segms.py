@@ -27,6 +27,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import cv2
 import numpy as np
 
 import pycocotools.mask as mask_util
@@ -90,31 +91,41 @@ def mask_to_bbox(mask):
     return np.array((x0, y0, x1, y1), dtype=np.float32)
 
 
-def polys_to_mask_wrt_box(polygons, box, M):
-    """Convert from the COCO polygon segmentation format to a binary mask
-    encoded as a 2D array of data type numpy.float32. The polygon segmentation
+def polys_to_mask_wrt_box(segm, box, M):
+    """Convert from the COCO segmentation format to a binary mask
+    encoded as a 2D array of data type numpy.float32. The segmentation
     is understood to be enclosed in the given box and rasterized to an M x M
     mask. The resulting mask is therefore of shape (M, M).
     """
-    w = box[2] - box[0]
-    h = box[3] - box[1]
 
-    w = np.maximum(w, 1)
-    h = np.maximum(h, 1)
+    if type(segm) is list:
+        polygons = segm
+        w = box[2] - box[0]
+        h = box[3] - box[1]
 
-    polygons_norm = []
-    for poly in polygons:
-        p = np.array(poly, dtype=np.float32)
-        p[0::2] = (p[0::2] - box[0]) * M / w
-        p[1::2] = (p[1::2] - box[1]) * M / h
-        polygons_norm.append(p)
+        w = np.maximum(w, 1)
+        h = np.maximum(h, 1)
 
-    rle = mask_util.frPyObjects(polygons_norm, M, M)
-    mask = np.array(mask_util.decode(rle), dtype=np.float32)
-    # Flatten in case polygons was a list
-    mask = np.sum(mask, axis=2)
-    mask = np.array(mask > 0, dtype=np.float32)
-    return mask
+        polygons_norm = []
+        for poly in polygons:
+            p = np.array(poly, dtype=np.float32)
+            p[0::2] = (p[0::2] - box[0]) * M / w
+            p[1::2] = (p[1::2] - box[1]) * M / h
+            polygons_norm.append(p)
+
+        rle = mask_util.frPyObjects(polygons_norm, M, M)
+        mask = np.array(mask_util.decode(rle), dtype=np.float32)
+        # Flatten in case polygons was a list
+        mask = np.sum(mask, axis=2)
+        mask = np.array(mask > 0, dtype=np.float32)
+        return mask
+        
+    elif type(segm) is dict:
+        x1, y1, x2, y2 = box
+        mask = np.array(mask_util.decode(rle), dtype=np.float32)
+        mask = mask[y1:y2,x1:x2]
+        mask = cv2.resize(mask, dsize=(M, M), interpolation=cv2.INTER_NEAREST)
+        return mask
 
 
 def polys_to_boxes(polys):

@@ -197,17 +197,5 @@ DATASETS = {
             _DATA_DIR + '/coco/val2017',
         ANN_FN:
             _DATA_DIR + '/coco/annotations/instances_val2017.json'
-    },
-    'ade20k_train': {
-        IM_DIR:
-            _DATA_DIR + '/ade20k/images/training',
-        ANN_FN:
-            _DATA_DIR + '/ade20k/annotations/instance_training_gts.json'
-    },
-    'ade20k_val': {
-        IM_DIR:
-            _DATA_DIR + '/ade20k/images/validation',
-        ANN_FN:
-            _DATA_DIR + '/ade20k/annotations/instance_validation_gts.json'
     }
 }
