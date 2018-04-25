@@ -29,9 +29,11 @@ from __future__ import unicode_literals
 
 import cv2
 import numpy as np
+import logging
 
 import pycocotools.mask as mask_util
 
+logger = logging.getLogger(__name__)
 
 def flip_segms(segms, height, width):
     """Left/right flip each mask in a list of masks."""
@@ -46,6 +48,7 @@ def flip_segms(segms, height, width):
             # COCO API showAnns function.
             rle = mask_util.frPyObjects([rle], height, width)
         mask = mask_util.decode(rle)
+        mask = mask[:,:,np.newaxis]
         mask = mask[:, ::-1, :]
         rle = mask_util.encode(np.array(mask, order='F', dtype=np.uint8))
         return rle
@@ -97,8 +100,17 @@ def polys_to_mask_wrt_box(segm, box, M):
     is understood to be enclosed in the given box and rasterized to an M x M
     mask. The resulting mask is therefore of shape (M, M).
     """
+    if type(segm) is list and type(segm[0]) is dict:
+        assert len(segm) == 1
+        segm = segm[0]
 
-    if type(segm) is list:
+    if type(segm) is dict:
+        box = box.astype(int)
+        mask = np.array(mask_util.decode(segm), dtype=np.float32)
+        mask = mask[box[1]:box[3], box[0]:box[2]]
+        mask = cv2.resize(mask, dsize=(M, M), interpolation=cv2.INTER_NEAREST)
+        return mask
+    elif type(segm) is list:
         polygons = segm
         w = box[2] - box[0]
         h = box[3] - box[1]
@@ -119,28 +131,35 @@ def polys_to_mask_wrt_box(segm, box, M):
         mask = np.sum(mask, axis=2)
         mask = np.array(mask > 0, dtype=np.float32)
         return mask
-        
-    elif type(segm) is dict:
-        x1, y1, x2, y2 = box
-        mask = np.array(mask_util.decode(rle), dtype=np.float32)
-        mask = mask[y1:y2,x1:x2]
-        mask = cv2.resize(mask, dsize=(M, M), interpolation=cv2.INTER_NEAREST)
-        return mask
+    else:
+        raise NotImplementedError("Segmentation type {} is not implemented".format(type(segm)))
 
 
-def polys_to_boxes(polys):
+def polys_to_boxes(segms):
     """Convert a list of polygons into an array of tight bounding boxes."""
-    boxes_from_polys = np.zeros((len(polys), 4), dtype=np.float32)
-    for i in range(len(polys)):
-        poly = polys[i]
-        x0 = min(min(p[::2]) for p in poly)
-        x1 = max(max(p[::2]) for p in poly)
-        y0 = min(min(p[1::2]) for p in poly)
-        y1 = max(max(p[1::2]) for p in poly)
-        boxes_from_polys[i, :] = [x0, y0, x1, y1]
+    boxes = np.zeros((len(segms), 4), dtype=np.float32)
+    for i in range(len(segms)):
+        segm = segms[i]
+        if type(segm) is list and type(segm[0]) is dict:
+            assert len(segm) == 1
+            segm = segm[0]
 
-    return boxes_from_polys
-
+        if type(segm) is dict:
+            bbox = mask_util.toBbox(segm)
+            x0 = bbox[0]
+            x1 = bbox[0] + bbox[2]
+            y0 = bbox[1]
+            y1 = bbox[1] + bbox[3]
+            boxes[i, :] = [x0, y0, x1, y1]
+        elif type(segm) is list:
+            x0 = min(min(p[::2]) for p in segm)
+            x1 = max(max(p[::2]) for p in segm)
+            y0 = min(min(p[1::2]) for p in segm)
+            y1 = max(max(p[1::2]) for p in segm)
+            boxes[i, :] = [x0, y0, x1, y1]
+        else:
+            raise NotImplementedError("Segmentation type {} is not implemented".format(type(segm)))
+    return boxes
 
 def rle_mask_voting(
     top_masks, all_masks, all_dets, iou_thresh, binarize_thresh, method='AVG'
