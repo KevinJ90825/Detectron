@@ -105,16 +105,18 @@ def polys_to_mask_wrt_box(segm, box, M):
         segm = segm[0]
 
     if type(segm) is dict:
-        box = box.astype(int)
+        x0, y0, x1, y1 = box.astype(int)
+        w = np.maximum(x1-x0, 1)
+        h = np.maximum(y1-y0, 1)
+
         mask = np.array(mask_util.decode(segm), dtype=np.float32)
-        mask = mask[box[1]:box[3], box[0]:box[2]]
+        mask = mask[y0:y0+h, x0:x0+w]
         mask = cv2.resize(mask, dsize=(M, M), interpolation=cv2.INTER_NEAREST)
         return mask
     elif type(segm) is list:
         polygons = segm
         w = box[2] - box[0]
         h = box[3] - box[1]
-
         w = np.maximum(w, 1)
         h = np.maximum(h, 1)
 
