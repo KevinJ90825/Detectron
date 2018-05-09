@@ -50,6 +50,11 @@ def add_ResNet152_conv5_body(model):
     return add_ResNet_convX_body(model, (3, 8, 36, 3))
 
 
+def add_ResNet18_conv4_body(model):
+    return add_ResNet_convX_body(model, (2, 2, 2))
+
+
+
 # ---------------------------------------------------------------------------- #
 # Generic ResNet components
 # ---------------------------------------------------------------------------- #
